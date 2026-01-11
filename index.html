@@ -164,7 +164,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
@@ -258,15 +258,35 @@
             const cant = parseInt(document.getElementById('cantInput').value);
             if (!cant || cant <= 0) return notify("CANTIDAD NO VÁLIDA");
 
-            const actual = datos[sedeActual][prod] || 0;
-            const nuevo = tipo === '+' ? actual + cant : actual - cant;
-            if (nuevo < 0) return notify("STOCK INSUFICIENTE");
+            const valorIncremento = tipo === '+' ? cant : -cant;
 
             try {
-                await updateDoc(docRef, { [`${sedeActual}.${prod}`]: nuevo });
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(docRef);
+                    if (!docSnap.exists()) { throw "El documento no existe"; }
+
+                    const stockActual = docSnap.data()[sedeActual]?.[prod] || 0;
+                    const nuevoStock = stockActual + valorIncremento;
+
+                    if (nuevoStock < 0) {
+                        // Lanzar un error abortará la transacción
+                        throw new Error("STOCK INSUFICIENTE");
+                    }
+
+                    transaction.update(docRef, { [`${sedeActual}.${prod}`]: nuevoStock });
+                });
+
                 document.getElementById('cantInput').value = '';
                 notify("INVENTARIO ACTUALIZADO ✅");
-            } catch (e) { notify("ERROR AL GUARDAR"); }
+
+            } catch (e) {
+                if (e.message === "STOCK INSUFICIENTE") {
+                    notify("STOCK INSUFICIENTE");
+                } else {
+                    notify("ERROR AL GUARDAR");
+                    console.error("Transaction failed: ", e);
+                }
+            }
         };
 
         window.guardarFactura = async () => {
@@ -286,17 +306,20 @@
                 pago: false
             };
 
-            const listado = [...(datos.facturas[sedeActual] || []), nuevaFactura];
-
             try {
-                await updateDoc(docRef, { [`facturas.${sedeActual}`]: listado });
-                // Limpiar campos
+                await updateDoc(docRef, {
+                    [`facturas.${sedeActual}`]: arrayUnion(nuevaFactura)
+                });
+
                 document.getElementById('fClient').value = '';
                 document.getElementById('fDetails').value = '';
                 document.getElementById('fAmount').value = '';
                 document.getElementById('fDate').value = '';
                 notify("FACTURA GENERADA ✅");
-            } catch (e) { notify("ERROR DE CONEXIÓN"); }
+            } catch (e) {
+                notify("ERROR DE CONEXIÓN");
+                console.error("Error adding document: ", e);
+            }
         };
 
         window.payModal = (id, monto) => {
@@ -307,14 +330,30 @@
 
         window.confirmarPago = async () => {
             const met = document.getElementById('payMethod').value;
-            const facturasActualizadas = datos.facturas[sedeActual].map(f => 
-                f.id === idFacturaACobrar ? {...f, pago: true, metodo: met} : f
-            );
+
             try {
-                await updateDoc(docRef, { [`facturas.${sedeActual}`]: facturasActualizadas });
+                await runTransaction(db, async (transaction) => {
+                    const docSnap = await transaction.get(docRef);
+                    if (!docSnap.exists()) { throw "El documento no existe"; }
+
+                    const facturasSede = docSnap.data().facturas[sedeActual] || [];
+                    const facturasActualizadas = facturasSede.map(f => {
+                        if (f.id === idFacturaACobrar) {
+                            return { ...f, pago: true, metodo: met };
+                        }
+                        return f;
+                    });
+
+                    transaction.update(docRef, { [`facturas.${sedeActual}`]: facturasActualizadas });
+                });
+
                 document.getElementById('modalPay').classList.add('hidden');
                 notify("PAGO REGISTRADO 🎉");
-            } catch (e) { notify("ERROR AL COBRAR"); }
+
+            } catch (e) {
+                notify("ERROR AL COBRAR");
+                console.error("Transaction failed: ", e);
+            }
         };
 
         // Inicio y Sincronización
