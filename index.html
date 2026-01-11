@@ -3,526 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Distribuidora Stark - Sistema de Gestión</title>
+    <title>Distribuidora Stark - Gestión Completa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .logo-container img {
-            max-height: 80px;
-            width: auto;
-            display: block;
-        }
-        .factura-vencida {
-            background-color: #fef2f2;
-            border-left: 4px solid #ef4444;
-        }
-        /* Estilos para scrollbars */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .vencida { background-color: #fff1f2; border-left: 5px solid #ef4444; }
+        .status-badge { font-size: 0.65rem; font-weight: 800; padding: 0.25rem 0.5rem; border-radius: 9999px; text-transform: uppercase; }
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="min-h-screen text-slate-900">
 
-    <div id="app" class="max-w-6xl mx-auto p-4 md:p-8">
-        <!-- Header Principal -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+    <div id="app" class="max-w-6xl mx-auto p-4 lg:p-10">
+        <!-- Encabezado -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div class="flex items-center gap-4">
-                <div class="logo-container bg-white p-2 rounded-xl shadow-sm border border-slate-100">
-                    <div class="font-bold text-2xl text-blue-700 p-2">DS</div>
+                <div class="bg-blue-700 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl rotate-3">
+                    <span class="text-white font-black text-2xl">DS</span>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Distribuidora Stark</h1>
-                    <p class="text-slate-500 font-medium tracking-tight">Gestión de Inventario y Facturación por Sede</p>
+                    <h1 class="text-3xl font-black tracking-tight text-slate-800">Distribuidora Stark</h1>
+                    <p class="text-slate-500 font-medium text-sm">Panel de Administración de Inventario</p>
                 </div>
             </div>
             
-            <div class="flex flex-col items-end gap-2">
+            <div class="flex flex-col items-end gap-3">
                 <div class="flex items-center gap-3 bg-white p-2 rounded-xl shadow-sm border border-slate-200">
-                    <span class="text-sm font-semibold text-slate-600 px-3">📍 SEDE ACTUAL:</span>
-                    <select id="sedeSelector" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold outline-none focus:ring-2 ring-blue-300 cursor-pointer transition-all">
+                    <span class="text-xs font-black text-slate-400 pl-2 text-nowrap">SEDE ACTUAL:</span>
+                    <select id="sedeSelect" class="bg-blue-600 text-white px-5 py-2 rounded-lg font-bold outline-none cursor-pointer hover:bg-blue-700 transition-colors">
                         <option value="Caracas">Caracas</option>
                         <option value="Maracay">Maracay</option>
                     </select>
                 </div>
-                <div id="userIdDisplay" class="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded tracking-tighter">Conectando...</div>
-            </div>
-        </header>
-
-        <!-- Resumen de Estadísticas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Stock Sede</p>
-                    <h3 id="totalUnidades" class="text-3xl font-black text-slate-800">0</h3>
-                </div>
-                <div class="bg-blue-50 p-3 rounded-full text-blue-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                </div>
-            </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Cuentas por Cobrar</p>
-                    <h3 id="totalFacturasPendientes" class="text-3xl font-black text-amber-600">0</h3>
-                </div>
-                <div class="bg-amber-50 p-3 rounded-full text-amber-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-            </div>
-            <div class="bg-emerald-600 p-6 rounded-2xl shadow-lg text-white flex justify-between items-center">
-                <div>
-                    <p class="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">Total Recibido (Sede)</p>
-                    <h3 id="totalDineroRecibido" class="text-3xl font-black">$ 0.00</h3>
-                </div>
-                <div class="bg-emerald-500 p-3 rounded-full text-white text-emerald-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
+                <div id="authStatus" class="text-[10px] font-mono text-slate-400 bg-white px-2 py-1 rounded-md border italic">Sincronizando...</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-            <!-- Tabla de Inventario -->
-            <div class="lg:col-span-2 space-y-4">
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                        <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            Inventario Actual: <span id="sedeTitulo" class="text-blue-600 ml-1">Caracas</span>
-                        </h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50/80 text-slate-500 text-xs uppercase tracking-widest">
-                                <tr>
-                                    <th class="px-8 py-5">Producto</th>
-                                    <th class="px-8 py-5">Stock Sede</th>
-                                    <th class="px-8 py-5 text-center">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaInventario" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Tarjetas de Resumen -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Stock en Sede</p>
+                <h3 id="statTotalStock" class="text-4xl font-black text-slate-800">0</h3>
             </div>
-
-            <!-- Gestión de Stock -->
-            <div class="space-y-6">
-                <div class="bg-white p-8 rounded-3xl shadow-md border border-slate-100">
-                    <h2 class="font-bold text-slate-800 mb-6 text-xl">Gestión de Stock</h2>
-                    <form id="movimientoForm" class="space-y-5" onsubmit="return false;">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tighter">Producto</label>
-                            <select id="inputProducto" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-medium outline-none focus:ring-2 ring-blue-100">
-                                <option value="Heineken">Cerveza Heineken</option>
-                                <option value="Budweiser">Cerveza Budweiser</option>
-                                <option value="Smirnoff">Smirnoff</option>
-                                <option value="Gatorade">Bebida Gatorade</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-tighter">Cantidad</label>
-                            <input type="number" id="inputCantidad" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-xl outline-none focus:ring-2 ring-blue-100">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button type="button" id="btnEntrada" class="bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-md">ENTRADA</button>
-                            <button type="button" id="btnSalida" class="bg-white border-2 border-red-500 text-red-600 font-bold py-3 rounded-xl hover:bg-red-50 transition">SALIDA</button>
-                        </div>
-                    </form>
-                </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Cuentas por Cobrar</p>
+                <h3 id="statFacturas" class="text-4xl font-black text-orange-500">0</h3>
+            </div>
+            <div class="bg-blue-600 p-6 rounded-3xl shadow-xl text-white flex flex-col justify-center">
+                <p class="text-xs font-bold text-blue-200 uppercase tracking-widest mb-1">Recaudado (Sede)</p>
+                <h3 id="statDinero" class="text-4xl font-black">$ 0.00</h3>
             </div>
         </div>
 
-        <!-- Sección de Facturas -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-             <div class="lg:col-span-2 space-y-4">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Listados -->
+            <div class="lg:col-span-8 space-y-8">
+                <!-- Inventario -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-                        <h2 class="font-bold text-slate-800 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" /></svg>
-                            Facturación Sede: <span id="sedeFactTitulo" class="text-amber-600 ml-1">Caracas</span>
-                        </h2>
-                        <span class="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded font-bold uppercase">Rojo = Vencida</span>
+                    <div class="p-6 border-b bg-slate-50/50 flex justify-between items-center">
+                        <h2 class="font-black text-slate-800 uppercase text-sm tracking-widest">Inventario Real: <span id="labelSede1" class="text-blue-600">Caracas</span></h2>
+                    </div>
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                            <tr>
+                                <th class="px-8 py-4">Producto</th>
+                                <th class="px-8 py-4">Existencia</th>
+                                <th class="px-8 py-4">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaStock" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+
+                <!-- Facturas -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-6 border-b bg-slate-50/50">
+                        <h2 class="font-black text-slate-800 uppercase text-sm tracking-widest">Cuentas Pendientes de Cobro</h2>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50/80 text-slate-500 text-[10px] uppercase tracking-widest">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-400">
                                 <tr>
-                                    <th class="px-6 py-4">Proveedor / Cliente</th>
-                                    <th class="px-6 py-4">Fechas</th>
+                                    <th class="px-6 py-4">Cliente / Detalle</th>
+                                    <th class="px-6 py-4">Vencimiento</th>
                                     <th class="px-6 py-4 text-right">Monto</th>
-                                    <th class="px-6 py-4 text-center">Gestión</th>
+                                    <th class="px-6 py-4 text-center">Acción</th>
                                 </tr>
                             </thead>
-                            <tbody id="tablaFacturas" class="divide-y divide-slate-100"></tbody>
+                            <tbody id="listaFacturas" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Panel de Creación de Factura -->
-            <div class="space-y-6">
+            <!-- Formularios -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Ajuste Stock -->
                 <div class="bg-white p-8 rounded-3xl shadow-md border border-slate-100">
-                    <h2 class="font-bold text-slate-800 mb-6 text-xl">Nueva Factura</h2>
-                    <form id="facturaForm" class="space-y-4" onsubmit="return false;">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-tighter">Proveedor / Cliente</label>
-                            <input type="text" id="factProv" placeholder="Nombre del Cliente" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none">
-                        </div>
+                    <h2 class="font-black text-slate-800 mb-6 text-lg tracking-tight">Cargar/Descargar Stock</h2>
+                    <div class="space-y-4">
+                        <select id="prodInput" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold">
+                            <option value="Heineken">Cerveza Heineken</option>
+                            <option value="Budweiser">Cerveza Budweiser</option>
+                            <option value="Smirnoff">Smirnoff</option>
+                            <option value="Gatorade">Gatorade</option>
+                        </select>
+                        <input type="number" id="cantInput" placeholder="Cantidad" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-2xl text-blue-600">
                         <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-tighter">Emisión</label>
-                                <input type="date" id="factInicio" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-tighter">Vencimiento</label>
-                                <input type="date" id="factVence" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none">
-                            </div>
+                            <button id="btnAdd" class="bg-emerald-500 text-white py-4 rounded-2xl font-black hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100">ENTRADA</button>
+                            <button id="btnRem" class="bg-rose-500 text-white py-4 rounded-2xl font-black hover:bg-rose-600 transition-all shadow-lg shadow-rose-100">SALIDA</button>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-tighter">Desglose de Mercancía</label>
-                            <textarea id="factDetalle" rows="2" placeholder="Ej: 10 Heineken, 5 Gatorade..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none resize-none"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-tighter">Monto Total ($)</label>
-                            <input type="number" step="0.01" id="factMonto" placeholder="0.00" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-amber-600 outline-none">
-                        </div>
-                        <button type="button" id="btnCrearFactura" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-2xl transition shadow-lg shadow-amber-50">REGISTRAR FACTURA</button>
-                    </form>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Toast de Notificaciones -->
-        <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl opacity-0 transition-all duration-300 pointer-events-none z-50">
-            <span id="toastMsg" class="font-bold text-sm text-center block">Mensaje</span>
-        </div>
-    </div>
-
-    <!-- Modal de Pago -->
-    <div id="modalPago" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-            <h3 class="text-xl font-bold text-slate-800 mb-2">Completar Cobro</h3>
-            <p id="modalMontoInfo" class="text-amber-600 font-black text-2xl mb-6">$ 0.00</p>
-            <div class="space-y-4">
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-tighter">Método de Pago</label>
-                <select id="metodoPago" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-slate-700">
-                    <option value="Pago Móvil">Pago Móvil</option>
-                    <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                    <option value="USDT">USDT (Cripto)</option>
-                    <option value="Efectivo">Efectivo</option>
-                </select>
-                <div class="flex gap-3 pt-4">
-                    <button id="btnConfirmarPago" class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-emerald-100">CONFIRMAR</button>
-                    <button onclick="cerrarModalPago()" class="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold">CANCELAR</button>
+                <!-- Factura Nueva -->
+                <div class="bg-white p-8 rounded-3xl shadow-md border border-slate-100">
+                    <h2 class="font-black text-slate-800 mb-6 text-lg tracking-tight">Crear Nueva Factura</h2>
+                    <div class="space-y-4">
+                        <input type="text" id="fClient" placeholder="Nombre del Cliente" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-medium outline-none">
+                        <textarea id="fDetails" placeholder="¿Qué contiene la factura? (ej. 10 cajas Heineken)" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-medium outline-none h-24 text-sm"></textarea>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Fecha de Vencimiento</label>
+                            <input type="date" id="fDate" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold outline-none">
+                        </div>
+                        <input type="number" id="fAmount" placeholder="Monto Total $" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-black text-2xl text-orange-600 outline-none">
+                        <button id="btnSaveFact" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-black hover:bg-blue-800 transition-all shadow-xl">REGISTRAR DEUDA</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Recordatorio WhatsApp -->
-    <div id="modalRecordatorio" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-[60]">
-        <div class="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="bg-green-100 p-2 rounded-lg text-green-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" /></svg>
-                </div>
-                <h3 class="text-xl font-bold text-slate-800">Mensaje de Recordatorio</h3>
-            </div>
-            <div class="space-y-4">
-                <p class="text-xs text-slate-500 font-medium">Puedes editar el mensaje antes de enviarlo:</p>
-                <textarea id="textoMensaje" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm outline-none focus:ring-2 ring-green-100 resize-none font-medium text-slate-700"></textarea>
-                <div class="flex gap-3 pt-2">
-                    <button id="btnEnviarWhatsApp" class="flex-1 bg-green-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-green-100">ENVIAR WHATSAPP</button>
-                    <button onclick="cerrarModalRecordatorio()" class="flex-1 bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold">CERRAR</button>
-                </div>
+    <!-- Modal Cobro -->
+    <div id="modalPay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-[40px] p-10 max-w-sm w-full shadow-2xl">
+            <h3 class="text-2xl font-black mb-2 text-slate-800">Procesar Pago</h3>
+            <p class="text-slate-500 mb-6 text-sm">Selecciona el método con el que recibiste el dinero.</p>
+            <div id="payDisplay" class="text-4xl font-black text-center text-blue-700 mb-8">$ 0.00</div>
+            <select id="payMethod" class="w-full p-5 bg-slate-50 border border-slate-200 rounded-2xl mb-8 font-black">
+                <option value="Efectivo">Efectivo</option>
+                <option value="Pago Móvil">Pago Móvil</option>
+                <option value="Zelle">Zelle</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="USDT">USDT</option>
+            </select>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="confirmPay" class="bg-blue-700 text-white py-4 rounded-2xl font-black shadow-lg">CONFIRMAR</button>
+                <button onclick="document.getElementById('modalPay').classList.add('hidden')" class="bg-slate-100 text-slate-500 py-4 rounded-2xl font-black">CERRAR</button>
             </div>
         </div>
+    </div>
+
+    <!-- Toast de Notificación -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-8 py-4 rounded-2xl shadow-2xl opacity-0 transition-all duration-300 z-[100] font-black text-sm pointer-events-none uppercase tracking-widest">
+        Mensaje
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'distribuidora-stark-v3';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'stark-dist-master';
 
-        let currentUser = null;
-        let currentSede = "Caracas";
-        let appData = { Caracas: {}, Maracay: {}, facturas: { Caracas: [], Maracay: [] } };
-        let facturaIdPorPagar = null;
-        const productosBase = ["Heineken", "Budweiser", "Smirnoff", "Gatorade"];
+        let sedeActual = "Caracas";
+        let datos = null;
+        let idFacturaACobrar = null;
 
-        const DOC_ID = "estado_maestro_v3";
-        const COLLECTION_NAME = "stark_data";
-        const getDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', COLLECTION_NAME, DOC_ID);
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'stark_dist_v4', 'master');
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            const msgSpan = document.getElementById('toastMsg');
-            msgSpan.innerText = msg;
-            toast.style.opacity = '1';
-            toast.style.transform = 'translate(-50%, -10px)';
-            setTimeout(() => { 
-                toast.style.opacity = '0'; 
-                toast.style.transform = 'translate(-50%, 0px)';
+        const notify = (m) => {
+            const el = document.getElementById('toast');
+            el.innerText = m;
+            el.style.opacity = '1';
+            el.style.transform = 'translate(-50%, -20px)';
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translate(-50%, 0)';
             }, 3000);
-        }
-
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
         };
 
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                document.getElementById('userIdDisplay').innerText = `ID Operador: ${user.uid.substring(0,8)}`;
-                iniciarSuscripcion();
-            }
-        });
+        const renderUI = () => {
+            if (!datos) return;
 
-        function iniciarSuscripcion() {
-            onSnapshot(getDocRef(), (snapshot) => {
-                if (snapshot.exists()) {
-                    appData = snapshot.data();
-                    if (!appData.facturas || Array.isArray(appData.facturas)) {
-                        appData.facturas = { Caracas: Array.isArray(appData.facturas) ? appData.facturas : [], Maracay: [] };
-                    }
-                    renderAll();
-                } else { inicializarDatos(); }
-            }, (error) => showToast("Error al sincronizar datos"));
-        }
-
-        async function inicializarDatos() {
-            if (!currentUser) return;
-            const initial = {
-                Caracas: { Heineken: 100, Budweiser: 100, Smirnoff: 100, Gatorade: 100 },
-                Maracay: { Heineken: 100, Budweiser: 100, Smirnoff: 100, Gatorade: 100 },
-                facturas: { Caracas: [], Maracay: [] }
-            };
-            try { await setDoc(getDocRef(), initial); } catch (e) {}
-        }
-
-        // --- Gestión de Stock ---
-        async function procesarMovimiento(tipo) {
-            const prod = document.getElementById('inputProducto').value;
-            const cant = parseInt(document.getElementById('inputCantidad').value);
-            if (isNaN(cant) || cant <= 0) return showToast("Indique una cantidad válida");
-
-            const stockActual = (appData[currentSede] && appData[currentSede][prod]) || 0;
-            const nuevoStock = tipo === 'entrada' ? stockActual + cant : stockActual - cant;
+            // Renderizado de Inventario
+            const containerStock = document.getElementById('listaStock');
+            containerStock.innerHTML = '';
+            let tStock = 0;
             
-            if (nuevoStock < 0) return showToast("Stock insuficiente en " + currentSede);
+            const inventarioSede = datos[sedeActual] || {};
+            Object.entries(inventarioSede).forEach(([prod, cant]) => {
+                tStock += cant;
+                containerStock.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-8 py-4 font-bold text-slate-700">${prod}</td>
+                        <td class="px-8 py-4 text-xl font-black">${cant}</td>
+                        <td class="px-8 py-4">
+                            <span class="status-badge ${cant < 15 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}">
+                                ${cant < 15 ? 'REPONER' : 'EXISTENCIA'}
+                            </span>
+                        </td>
+                    </tr>`;
+            });
+
+            // Renderizado de Facturas
+            const containerFact = document.getElementById('listaFacturas');
+            containerFact.innerHTML = '';
+            let fP = 0, dR = 0;
+            const hoy = new Date();
+            hoy.setHours(0,0,0,0);
+
+            (datos.facturas[sedeActual] || []).forEach(f => {
+                if (!f.pago) fP++; else dR += f.monto;
+                
+                const fechaVen = new Date(f.vence);
+                fechaVen.setHours(23,59,59,999);
+                const esVencida = fechaVen < hoy && !f.pago;
+
+                containerFact.innerHTML += `
+                    <tr class="${esVencida ? 'vencida' : 'hover:bg-slate-50'}">
+                        <td class="px-6 py-4">
+                            <div class="font-black text-slate-800 uppercase text-xs">${f.cliente}</div>
+                            <div class="text-[10px] text-slate-500 italic mt-1">${f.detalles || 'Sin descripción'}</div>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-xs ${esVencida ? 'text-rose-600 font-black' : 'text-slate-400'}">
+                            ${f.vence.split('-').reverse().join('/')}
+                            ${esVencida ? '<br><span class="text-[8px] uppercase">¡VENCIDA!</span>' : ''}
+                        </td>
+                        <td class="px-6 py-4 text-right font-black text-slate-900">$${f.monto.toFixed(2)}</td>
+                        <td class="px-6 py-4 text-center">
+                            ${f.pago ? 
+                                `<span class="text-emerald-600 font-black text-[10px] bg-emerald-50 px-2 py-1 rounded-md uppercase border border-emerald-100">${f.metodo}</span>` : 
+                                `<button onclick="window.payModal('${f.id}', ${f.monto})" class="bg-blue-600 text-white px-4 py-1.5 rounded-xl font-black text-xs hover:bg-blue-700 transition-all shadow-md">COBRAR</button>`
+                            }
+                        </td>
+                    </tr>`;
+            });
+
+            document.getElementById('statTotalStock').innerText = tStock;
+            document.getElementById('statFacturas').innerText = fP;
+            document.getElementById('statDinero').innerText = `$ ${dR.toLocaleString()}`;
+            document.getElementById('labelSede1').innerText = sedeActual;
+        };
+
+        // Acciones de Base de Datos
+        window.operarStock = async (tipo) => {
+            const prod = document.getElementById('prodInput').value;
+            const cant = parseInt(document.getElementById('cantInput').value);
+            if (!cant || cant <= 0) return notify("CANTIDAD NO VÁLIDA");
+
+            const actual = datos[sedeActual][prod] || 0;
+            const nuevo = tipo === '+' ? actual + cant : actual - cant;
+            if (nuevo < 0) return notify("STOCK INSUFICIENTE");
 
             try {
-                await updateDoc(getDocRef(), { [`${currentSede}.${prod}`]: nuevoStock });
-                showToast("Stock actualizado");
-                document.getElementById('movimientoForm').reset();
-            } catch (e) { showToast("Error al actualizar stock"); }
-        }
+                await updateDoc(docRef, { [`${sedeActual}.${prod}`]: nuevo });
+                document.getElementById('cantInput').value = '';
+                notify("INVENTARIO ACTUALIZADO ✅");
+            } catch (e) { notify("ERROR AL GUARDAR"); }
+        };
 
-        // --- Gestión de Facturas ---
-        async function crearFactura() {
-            const prov = document.getElementById('factProv').value;
-            const inicio = document.getElementById('factInicio').value;
-            const vence = document.getElementById('factVence').value;
-            const detalle = document.getElementById('factDetalle').value;
-            const monto = parseFloat(document.getElementById('factMonto').value);
-
-            if (!prov || !inicio || !vence || isNaN(monto)) return showToast("Complete todos los campos");
+        window.guardarFactura = async () => {
+            const cliente = document.getElementById('fClient').value.trim();
+            const detalles = document.getElementById('fDetails').value.trim();
+            const vence = document.getElementById('fDate').value;
+            const monto = parseFloat(document.getElementById('fAmount').value);
+            
+            if (!cliente || !monto || !vence) return notify("FALTAN DATOS OBLIGATORIOS");
 
             const nuevaFactura = {
                 id: Date.now().toString(),
-                proveedor: prov,
-                fechaInicio: inicio,
-                fechaVence: vence,
-                detalle: detalle || "Sin desglose",
-                monto: monto,
-                pagada: false,
-                metodoPago: null,
-                fechaPago: null
+                cliente,
+                detalles,
+                vence,
+                monto,
+                pago: false
             };
 
-            const facturasSede = [...(appData.facturas[currentSede] || []), nuevaFactura];
+            const listado = [...(datos.facturas[sedeActual] || []), nuevaFactura];
 
             try {
-                await updateDoc(getDocRef(), { [`facturas.${currentSede}`]: facturasSede });
-                showToast("Factura registrada en " + currentSede);
-                document.getElementById('facturaForm').reset();
-            } catch (e) { showToast("Error al guardar factura"); }
-        }
-
-        window.abrirModalPago = (id, monto) => {
-            facturaIdPorPagar = id;
-            document.getElementById('modalMontoInfo').innerText = `$ ${monto.toFixed(2)}`;
-            document.getElementById('modalPago').classList.replace('hidden', 'flex');
+                await updateDoc(docRef, { [`facturas.${sedeActual}`]: listado });
+                // Limpiar campos
+                document.getElementById('fClient').value = '';
+                document.getElementById('fDetails').value = '';
+                document.getElementById('fAmount').value = '';
+                document.getElementById('fDate').value = '';
+                notify("FACTURA GENERADA ✅");
+            } catch (e) { notify("ERROR DE CONEXIÓN"); }
         };
 
-        window.cerrarModalPago = () => {
-            document.getElementById('modalPago').classList.replace('flex', 'hidden');
+        window.payModal = (id, monto) => {
+            idFacturaACobrar = id;
+            document.getElementById('payDisplay').innerText = `$ ${monto.toFixed(2)}`;
+            document.getElementById('modalPay').classList.remove('hidden');
         };
 
-        async function confirmarPago() {
-            const metodo = document.getElementById('metodoPago').value;
-            const facturasSede = appData.facturas[currentSede].map(f => {
-                if (f.id === facturaIdPorPagar) {
-                    return { ...f, pagada: true, metodoPago: metodo, fechaPago: new Date().toISOString() };
+        window.confirmarPago = async () => {
+            const met = document.getElementById('payMethod').value;
+            const facturasActualizadas = datos.facturas[sedeActual].map(f => 
+                f.id === idFacturaACobrar ? {...f, pago: true, metodo: met} : f
+            );
+            try {
+                await updateDoc(docRef, { [`facturas.${sedeActual}`]: facturasActualizadas });
+                document.getElementById('modalPay').classList.add('hidden');
+                notify("PAGO REGISTRADO 🎉");
+            } catch (e) { notify("ERROR AL COBRAR"); }
+        };
+
+        // Inicio y Sincronización
+        signInAnonymously(auth).then(() => {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    document.getElementById('authStatus').innerText = "CONECTADO - NUBE STARK";
+                    onSnapshot(docRef, (snap) => {
+                        if (snap.exists()) {
+                            datos = snap.data();
+                            renderUI();
+                        } else {
+                            const initial = {
+                                Caracas: { Heineken: 100, Budweiser: 100, Smirnoff: 50, Gatorade: 200 },
+                                Maracay: { Heineken: 50, Budweiser: 50, Smirnoff: 20, Gatorade: 100 },
+                                facturas: { Caracas: [], Maracay: [] }
+                            };
+                            setDoc(docRef, initial);
+                        }
+                    }, (err) => notify("SIN PERMISOS DE LECTURA"));
                 }
-                return f;
             });
-
-            try {
-                await updateDoc(getDocRef(), { [`facturas.${currentSede}`]: facturasSede });
-                cerrarModalPago();
-                showToast("Pago recibido con éxito");
-            } catch (e) { showToast("Error al registrar pago"); }
-        }
-
-        // --- Recordatorios ---
-        window.abrirModalRecordatorio = (id) => {
-            const f = appData.facturas[currentSede].find(fact => fact.id === id);
-            if (!f) return;
-
-            const hoy = new Date();
-            const fechaVence = new Date(f.fechaVence);
-            const diffDays = Math.ceil(Math.abs(hoy - fechaVence) / (1000 * 60 * 60 * 24));
-            
-            const mensaje = `Hola, estimado(a) *${f.proveedor}*. 👋
-
-Le saludamos de *Distribuidora Stark*. Le recordamos que su factura #${f.id.slice(-6)} por un monto de *$${f.monto.toFixed(2)}* venció hace ${diffDays} día(s). 
-
-Por favor, indíquenos si ya realizó el pago o si tiene alguna duda. ¡Gracias!`;
-
-            document.getElementById('textoMensaje').value = mensaje;
-            document.getElementById('modalRecordatorio').classList.replace('hidden', 'flex');
-        };
-
-        window.cerrarModalRecordatorio = () => {
-            document.getElementById('modalRecordatorio').classList.replace('flex', 'hidden');
-        };
-
-        window.enviarWhatsApp = () => {
-            const texto = document.getElementById('textoMensaje').value;
-            window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
-            cerrarModalRecordatorio();
-        };
-
-        // --- Utilidades ---
-        function formatFecha(fechaStr) {
-            if (!fechaStr) return "-";
-            const p = fechaStr.split("-");
-            return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : fechaStr;
-        }
-
-        function estaVencida(fechaVenceStr, pagada) {
-            if (pagada) return false;
-            const hoy = new Date();
-            hoy.setHours(0,0,0,0);
-            const vence = new Date(fechaVenceStr);
-            vence.setHours(23,59,59,999);
-            return hoy > vence;
-        }
-
-        // --- Renderizado ---
-        function renderAll() {
-            renderInventory();
-            renderFacturas();
-        }
-
-        function renderInventory() {
-            const tbody = document.getElementById('tablaInventario');
-            const dataSede = appData[currentSede] || {};
-            document.getElementById('sedeTitulo').innerText = currentSede;
-            tbody.innerHTML = '';
-            let total = 0;
-
-            productosBase.forEach(nombre => {
-                const stock = dataSede[nombre] || 0;
-                total += stock;
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="px-8 py-5 font-bold text-slate-800">${nombre}</td>
-                        <td class="px-8 py-5 text-lg font-black text-slate-700">${stock}</td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1 rounded-lg text-[10px] font-black ${stock < 20 ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600'}">
-                                ${stock < 20 ? 'PEDIR' : 'ESTABLE'}
-                            </span>
-                        </td>
-                    </tr>
-                `;
-            });
-            document.getElementById('totalUnidades').innerText = total;
-        }
-
-        function renderFacturas() {
-            const tbody = document.getElementById('tablaFacturas');
-            document.getElementById('sedeFactTitulo').innerText = currentSede;
-            tbody.innerHTML = '';
-            
-            let pendientes = 0;
-            let recaudado = 0;
-            const lista = (appData.facturas[currentSede] || []).sort((a,b) => b.id - a.id);
-
-            lista.forEach(f => {
-                const vencida = estaVencida(f.fechaVence, f.pagada);
-                if (!f.pagada) pendientes++;
-                else recaudado += f.monto;
-
-                tbody.innerHTML += `
-                    <tr class="${vencida ? 'factura-vencida' : 'hover:bg-slate-50'} transition-colors">
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-slate-800">${f.proveedor}</div>
-                            <div class="text-[10px] text-slate-400">ID: ${f.id.slice(-6)}</div>
-                            <details class="mt-1">
-                                <summary class="text-[10px] text-blue-500 cursor-pointer hover:underline font-bold">Ver desglose</summary>
-                                <div class="p-2 bg-slate-100 rounded text-[10px] text-slate-600 mt-1 italic">${f.detalle}</div>
-                            </details>
-                        </td>
-                        <td class="px-6 py-4 text-[11px] text-slate-500">
-                            <div>Emi: ${formatFecha(f.fechaInicio)}</div>
-                            <div class="${vencida ? 'text-red-600 font-bold' : ''}">Ven: ${formatFecha(f.fechaVence)}</div>
-                        </td>
-                        <td class="px-6 py-4 text-right font-black text-slate-800">$ ${f.monto.toFixed(2)}</td>
-                        <td class="px-6 py-4 text-center">
-                            <div class="flex flex-col gap-2">
-                                ${f.pagada 
-                                    ? `<div class="bg-emerald-100 text-emerald-700 text-[9px] font-black px-2 py-1 rounded">PAGADA<br>${f.metodoPago}</div>`
-                                    : `
-                                        <button onclick="abrirModalPago('${f.id}', ${f.monto})" class="bg-amber-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-amber-600 transition">COBRAR</button>
-                                        <button onclick="abrirModalRecordatorio('${f.id}')" class="bg-white border border-green-500 text-green-600 text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-green-50 transition">RECO.</button>
-                                      `
-                                }
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById('totalFacturasPendientes').innerText = pendientes;
-            document.getElementById('totalDineroRecibido').innerText = `$ ${recaudado.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-        }
-
-        // Event Listeners
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('sedeSelector')?.addEventListener('change', (e) => {
-                currentSede = e.target.value;
-                renderAll();
-            });
-            document.getElementById('btnEntrada')?.addEventListener('click', () => procesarMovimiento('entrada'));
-            document.getElementById('btnSalida')?.addEventListener('click', () => procesarMovimiento('salida'));
-            document.getElementById('btnCrearFactura')?.addEventListener('click', crearFactura);
-            document.getElementById('btnConfirmarPago')?.addEventListener('click', confirmarPago);
-            document.getElementById('btnEnviarWhatsApp')?.addEventListener('click', enviarWhatsApp);
-            initAuth();
         });
+
+        // Eventos de botones
+        document.getElementById('sedeSelect').onchange = (e) => { sedeActual = e.target.value; renderUI(); };
+        document.getElementById('btnAdd').onclick = () => operarStock('+');
+        document.getElementById('btnRem').onclick = () => operarStock('-');
+        document.getElementById('btnSaveFact').onclick = guardarFactura;
+        document.getElementById('confirmPay').onclick = confirmarPago;
+
     </script>
 </body>
 </html>
